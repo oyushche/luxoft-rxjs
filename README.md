@@ -8,5 +8,5 @@ Should have Node.js installed.
 
 # launch
 
-2. webpack -w
-4. npm start
+1. webpack -w
+2. npm start
