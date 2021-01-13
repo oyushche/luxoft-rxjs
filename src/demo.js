@@ -1,5 +1,6 @@
 import $ from 'jquery';
-import Rx from 'rxjs/Rx';
+import {concat, from, fromEvent, interval, merge, Observable, of, range, Subject, timer} from 'rxjs';
+import {debounceTime, distinctUntilChanged, filter, map, mergeMap, pluck, switchMap, take, tap} from "rxjs/operators";
 
 var btn = $('#btn');
 
@@ -11,27 +12,29 @@ var data = $('#data');
 // Events
 // -----------------------------------------------
 
-// Rx.Observable.fromEvent(btn, 'click')
-//     .subscribe(event => console.log(event));
+    // fromEvent(btn, 'click')
+    //     .subscribe(event => console.log(event));
 
+    // .fromEvent(btn, 'click')
+    //     .scan(count => count + 1, 0)
+    //     .subscribe(count => console.log('count of clicks: ' + count));
 
-// Rx.Observable.fromEvent(btn, 'click')
-//     .scan(count => count + 1, 0)
-//     .subscribe(count => console.log('count of clicks: ' + count));
-
-// Rx.Observable.fromEvent(input, 'keyup')
-//     .subscribe(event => {data.text(event.target.value)});
+    // fromEvent(input, 'keyup')
+    //     .subscribe(event =>
+    //     {
+    //         data.text(event.target.value)
+    //     });
 
 // -----------------------------------------------
 // Numbers
 // -----------------------------------------------
 // next(), error(), complete()
 //
-// var numbers$ = Rx.Observable.from([0, 1, 2, 3, 4, 5]);
+// var numbers$ = from([0, 1, 2, 3, 4, 5]);
 //
 // numbers$.subscribe(n => console.log(n), err => {}, () => console.log('done'));
 //
-// var names$ = Rx.Observable.from(new Set(['Oleg', 'Anna', 'Nikita']));
+// var names$ = from(new Set(['Oleg', 'Anna', 'Nikita']));
 //
 // names$.subscribe(name => console.log(name));
 
@@ -39,32 +42,41 @@ var data = $('#data');
 // New Observer
 // -----------------------------------------------
 //
-// var generator$ = new Rx.Observable(obs => {
+//
+// var generator$ = new Observable(obs => {
 //
 //     let counter = 0;
 //
-//     setInterval(() => {obs.next(counter++)}, 500);
+//     setInterval(() => {
+//         obs.next(counter++);
 //
-//     setTimeout(() => { obs.complete() }, 3000);
+//     }, 500);
+//
+//     setTimeout(() => {
+//         obs.complete()
+//     }, 5000);
 // });
 //
-// generator$.subscribe(n => console.log(n), err => {}, () => console.log("done"));
+// generator$.subscribe(n => console.log(n), err => console.log(err), () => console.log("done"));
 
 // -----------------------------------------------
 // interval, timer, range
 // -----------------------------------------------
 
 // var delay = 400;
-// var counter$ = Rx.Observable.interval(delay);
+// var counter$ = interval(delay);
 //
 // counter$.subscribe(n => console.log(n));
-// //
-// var startAfter = 3000;
-// var timer$ = Rx.Observable.timer(startAfter, delay).take(10);
 
+// var startAfter = 2000;
+// var timer$ = timer(startAfter, delay)
+//     .pipe(
+//         take(10)
+//     );
+//
 // timer$.subscribe(n => console.log(n));
-
-// var range$ = Rx.Observable.range(0, 9);
+//
+// var range$ = range(0, 9);
 //
 // range$.subscribe(n => console.log(n));
 
@@ -72,9 +84,12 @@ var data = $('#data');
 // map, pluck
 // -----------------------------------------------
 
-// Rx.Observable.range(0, 9)
-//     .map(n => n * 10)
-//     .subscribe(n => console.log(n));
+    // range(0, 9)
+    //     .pipe(
+    //         map(n => n * 10)
+    //     )
+    // .subscribe(n => console.log(n));
+
 
 // var people = [
 //     {name: 'Oleg', age: 18},
@@ -82,9 +97,11 @@ var data = $('#data');
 //     {name: 'Lena', age: 38}
 // ];
 //
-// var peopleObs$ = Rx.Observable.from(people)
-//     // .map(p => p.name);
-//     .pluck('name');
+// var peopleObs$ = from(people)
+//     .pipe(
+//         // map(p => p.name)
+//         pluck('name')
+//     )
 //
 // peopleObs$.subscribe(n => console.log(n));
 // peopleObs$.subscribe(n => console.log(n));
@@ -93,55 +110,86 @@ var data = $('#data');
 // merge, concat
 // -----------------------------------------------
 
-// var smalls$ = Rx.Observable.interval(250).map(v => 's ' + v);
-// var bigs$ = Rx.Observable.interval(500).map(v => 'b ' + (v * 10));
+// var smalls$ = interval(250)
+//     .pipe(
+//         take(5),
+//         map(v => 's ' + v)
+//     );
 //
-// Rx.Observable
-//     // .concat(smalls$, bigs$)
-//     .merge(smalls$, bigs$)
-//     .take(10)
-//     .subscribe(n => console.log(n));
+// var bigs$ = interval(500)
+//     .pipe(
+//         map(v => 'b ' + (v * 10))
+//     );
+//
+//     concat(smalls$, bigs$)
+//     // merge(smalls$, bigs$)
+//         .pipe(
+//             take(10)
+//         )
+//         .subscribe(n => console.log(n));
 //
 // -----------------------------------------------
 // mergeMap
 // -----------------------------------------------
 //
-// Rx.Observable.of(['Hello', 'Hi'])
-//     .mergeMap(greeting =>
-//         Rx.Observable.of(greeting + ' Class')
-//     )
-//     .subscribe(res => console.log(res));
-//
+//     of([['Hello', 'Hi2', 'Hi3'], 'H1', [1, 2, 3]])
+//         .pipe(
+//             mergeMap(greeting => of(greeting + " another"))
+//         )
+//         .subscribe(res => console.log(res));
+
 // -----------------------------------------------
 // switchMap
 // -----------------------------------------------
 //
-// var clicks = Rx.Observable.fromEvent(document, 'click');
+// var clicks = fromEvent(document, 'click');
 //
-// var result = clicks.switchMap((ev) => Rx.Observable.interval(1000));
+// var result = clicks.pipe(
+//     switchMap((ev) => interval(1000))
+// );
 // result.subscribe(x => console.log(x));
 
 // -----------------------------------------------
 // do
 // -----------------------------------------------
 
-// Rx.Observable.interval(10)
-//     .do(value => {
-//         if (value % 10 == 0)
-//         {
-//             console.log('do trace --> ' + value)
-//         }
-//     })
-//     .filter(value => value % 100 == 0)
-//     .subscribe(value => console.log(value));
-//
+    // interval(100)
+    // .pipe(
+    //     tap(value => {
+    //         if (value % 5 == 0)
+    //         {
+    //             console.log('do trace --> ' + value)
+    //         }
+    //     }),
+    //     filter(value => value % 10 == 0)
+    // )
+    // .subscribe(value => console.log(value));
+
 // -----------------------------------------------
 // just for fun
 // -----------------------------------------------
+//     fromEvent(input, 'keyup')
+//         .pipe(
+//             map(event => event.target.value),
+//             filter(value => value.length > 2),
+//             debounceTime(300),
+//             distinctUntilChanged()
+//         )
+//         .forEach(value => console.log(value));
 
-// Rx.Observable.fromEvent(input, 'keyup')
-//     .map(event => event.target.value)
-//     .filter(value => value.length > 2)
-//     .distinctUntilChanged()
-//     .debounceTime(300)
-//     .forEach(value => console.log(value));
+// -----------------------------------------------
+// Subject
+// -----------------------------------------------
+
+// var subject = new Subject();
+//
+// subject.subscribe({
+//     next: (v) => console.log('observerA: ' + v)
+// });
+// subject.subscribe({
+//     next: (v) => console.log('observerB: ' + v)
+// });
+//
+// var observable = from([1, 2, 3]);
+// observable.subscribe(subject); // You can subscribe providing a Subject
+
